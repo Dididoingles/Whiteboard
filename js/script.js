@@ -1450,70 +1450,81 @@
      }
    }
    
-   /* ==========================================================================
-      TOQUE SIMPLES EM ÁREA VAZIA — MOBILE
-      Cria texto quando o usuário toca em área vazia no modo Texto.
-      Não conflita com modo caneta (isDrawingMode) porque só age em modo texto.
-      Não conflita com botões da UI porque só age no <canvas id="whiteboard">.
-      ========================================================================== */
-   (function setupMobileTapToCreateText() {
-     /* Só roda em telas touch */
-     const isTouchDevice = ('ontouchstart' in window) ||
-                           (navigator.maxTouchPoints > 0);
-     if (!isTouchDevice) return;
-   
-     let touchStartX = 0;
-     let touchStartY = 0;
-     let touchStartTime = 0;
-     let touchStartTarget = null;
-   
-     document.addEventListener('touchstart', (e) => {
-       const touch = e.touches[0];
-       if (!touch) return;
-       touchStartX = touch.clientX;
-       touchStartY = touch.clientY;
-       touchStartTime = Date.now();
-       touchStartTarget = e.target;
-     }, { passive: true });
-   
-     document.addEventListener('touchend', (e) => {
-       if (!canvas) return;
-   
-       /* Só age se o toque começou e terminou no canvas */
-       if (!touchStartTarget || touchStartTarget.id !== 'whiteboard') return;
-   
-       /* Só no modo texto */
-       if (currentToolMode !== 'text') return;
-   
-       /* Só se não estiver no modo desenho */
-       if (canvas.isDrawingMode) return;
-   
-       /* Ignora se o canvas tem objeto selecionado/em edição */
-       const active = canvas.getActiveObject();
-       if (active) {
-         if (active.isEditing) return;
-         canvas.discardActiveObject();
-         canvas.renderAll();
-       }
-   
-       /* Ignora se foi um gesto (moveu muito) */
-       const touch = e.changedTouches[0];
-       if (!touch) return;
-       const dx = Math.abs(touch.clientX - touchStartX);
-       const dy = Math.abs(touch.clientY - touchStartY);
-       if (dx > 10 || dy > 10) return;
-   
-       /* Ignora se foi um toque longo (> 500ms) — provavelmente gesto */
-       const elapsed = Date.now() - touchStartTime;
-       if (elapsed > 500) return;
-   
-       /* Ignora se o toque caiu em cima de um objeto do Fabric */
-       const pointer = canvas.getPointer(touch);
-       const target = canvas.findTarget({ clientX: touch.clientX, clientY: touch.clientY });
-       if (target) return;
-   
-       /* Cria o texto na posição do toque */
-       e.preventDefault();
-       createTextAt(pointer.x, pointer.y);
-     }, { passive: false });
-   })();
+  /* ==========================================================================
+   TOQUE SIMPLES EM ÁREA VAZIA — MOBILE
+   Cria texto quando o usuário toca em área vazia no modo Texto.
+   Não conflita com modo caneta (isDrawingMode) porque só age em modo texto.
+   Não conflita com botões da UI porque só age dentro do canvas.
+   ========================================================================== */
+(function setupMobileTapToCreateText() {
+    /* Só roda em telas touch */
+    const isTouchDevice = ('ontouchstart' in window) ||
+                          (navigator.maxTouchPoints > 0);
+    if (!isTouchDevice) return;
+  
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+    let touchStartedOnCanvas = false;
+  
+    /* Descobre se um elemento é (ou está dentro d)o canvas.
+       O Fabric envolve o <canvas> numa <div class="canvas-container">,
+       então o target pode ser tanto o canvas quanto esse wrapper. */
+    function isCanvasElement(el) {
+      if (!el) return false;
+      if (el.id === 'whiteboard') return true;
+      if (el.tagName && el.tagName.toLowerCase() === 'canvas') return true;
+      if (el.classList && el.classList.contains('canvas-container')) return true;
+      /* Fallback: sobe na árvore procurando o canvas-container */
+      return !!(el.closest && el.closest('#canvas-container'));
+    }
+  
+    document.addEventListener('touchstart', (e) => {
+      const touch = e.touches[0];
+      if (!touch) return;
+      touchStartX = touch.clientX;
+      touchStartY = touch.clientY;
+      touchStartTime = Date.now();
+      touchStartedOnCanvas = isCanvasElement(e.target);
+    }, { passive: true });
+  
+    document.addEventListener('touchend', (e) => {
+      if (!canvas) return;
+  
+      /* Só age se o toque começou no canvas */
+      if (!touchStartedOnCanvas) return;
+  
+      /* Só no modo texto */
+      if (currentToolMode !== 'text') return;
+  
+      /* Só se não estiver no modo desenho */
+      if (canvas.isDrawingMode) return;
+  
+      /* Ignora se o canvas tem objeto selecionado/em edição */
+      const active = canvas.getActiveObject();
+      if (active && active.isEditing) return;
+  
+      /* Ignora se foi um gesto (moveu muito) */
+      const touch = e.changedTouches[0];
+      if (!touch) return;
+      const dx = Math.abs(touch.clientX - touchStartX);
+      const dy = Math.abs(touch.clientY - touchStartY);
+      if (dx > 10 || dy > 10) return;
+  
+      /* Ignora se foi um toque longo (> 500ms) — provavelmente gesto */
+      const elapsed = Date.now() - touchStartTime;
+      if (elapsed > 500) return;
+  
+      /* Ignora se o toque caiu em cima de um objeto do Fabric */
+      const pointer = canvas.getPointer(touch);
+      const target = canvas.findTarget({
+        clientX: touch.clientX,
+        clientY: touch.clientY
+      });
+      if (target) return;
+  
+      /* Cria o texto na posição do toque */
+      e.preventDefault();
+      createTextAt(pointer.x, pointer.y);
+    }, { passive: false });
+  })();
