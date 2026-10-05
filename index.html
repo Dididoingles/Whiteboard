@@ -1,0 +1,430 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="favicon.png">
+<title>Didi's Whiteboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- Tooltip global -->
+<div id="global-tooltip" class="global-tooltip"></div>
+
+<!-- ==========================================================================
+     BOTÃO FLUTUANTE + OVERLAY + GAVETA
+     ========================================================================== -->
+<button class="nav-drawer-btn" id="openDrawerBtn" aria-label="Abrir ferramentas">
+  <i class="fa-solid fa-chevron-right"></i>
+</button>
+
+<div class="drawer-overlay" id="drawerOverlay"></div>
+
+<aside id="sidebar">
+  <div class="drawer-close-container">
+    <button class="drawer-close-sidebar-btn" id="closeDrawerBtn" aria-label="Fechar">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+  </div>
+
+  <div class="drawer-title">
+    <i class="fa-solid fa-toolbox"></i>
+    <span>Toolkit</span>
+  </div>
+
+  <div class="tool-grid">
+    <!-- Linha 1 -->
+    <div class="side-item" onclick="openIconModal()" data-tooltip="Inserir ícone">
+      <i class="fa-solid fa-icons"></i>
+    </div>
+    <div class="side-item" onclick="openPostItModal()" data-tooltip="Post-it">
+      <i class="fa-solid fa-note-sticky"></i>
+    </div>
+    <div class="side-item" onclick="openColorPaletteModal()" data-tooltip="Paleta de cores">
+      <i class="fa-solid fa-palette"></i>
+    </div>
+
+    <!-- Linha 2 -->
+    <div class="side-item" onclick="undo()" data-tooltip="Desfazer (Ctrl+Z)">
+      <i class="fa-solid fa-rotate-left"></i>
+    </div>
+    <div class="side-item" id="redoBtn" onclick="redo()" data-tooltip="Refazer (Ctrl+Shift+Z)">
+      <i class="fa-solid fa-rotate-right"></i>
+    </div>
+    <div class="side-item" onclick="promptDeleteSelected()" data-tooltip="Excluir selecionado">
+      <i class="fa-solid fa-trash-can"></i>
+    </div>
+
+    <!-- Linha 3 -->
+    <div class="side-item" onclick="promptClearBoard()" data-tooltip="Limpar quadro">
+      <i class="fa-solid fa-broom"></i>
+    </div>
+    <div class="side-item" onclick="openGoogleImages()" data-tooltip="Google Imagens">
+      <i class="fa-solid fa-image"></i>
+    </div>
+    <div class="side-item" onclick="openGoogleTranslate()" data-tooltip="Google Translate">
+      <i class="fa-solid fa-language"></i>
+    </div>
+
+    <div class="grid-separator" aria-hidden="true"></div>
+
+    <!-- Linha 4 -->
+    <div class="side-item" onclick="downloadCanvas()" data-tooltip="Baixar PNG" style="color:#2e7d32;">
+      <i class="fa-solid fa-download"></i>
+    </div>
+    <div class="side-item" onclick="openCambridge()" data-tooltip="Cambridge Dictionary">
+      <i class="fa-solid fa-book-open"></i>
+    </div>
+    <div class="side-item" onclick="openMySite()" data-tooltip="Meu site" style="color:#c00000;">
+      <i class="fa-solid fa-globe"></i>
+    </div>
+    <div class="side-item" onclick="openLibrary()" data-tooltip="Biblioteca" style="color:#c00000;">
+      <i class="fa-solid fa-book-bookmark"></i>
+    </div>
+    <div class="side-item" onclick="manualSave()" data-tooltip="Salvar agora" style="color:#1976d2;">
+      <i class="fa-solid fa-floppy-disk"></i>
+    </div>
+  </div>
+
+  <hr class="drawer-divider">
+
+  <div class="brush-size-container">
+    <span class="control-label">Brush size</span>
+    <input type="range" id="brush-size" min="1" max="40" value="3" oninput="updateBrushSize(this.value)">
+  </div>
+
+  <footer class="drawer-footer">
+    <button onclick="openModal('licenseModal')">Licença & Termos de uso</button>
+    <div class="credits">Desenvolvido por Diandra C. @dicarvalho.prof</div>
+  </footer>
+</aside>
+
+<!-- ==========================================================================
+     HEADER UNIFICADO
+     ========================================================================== -->
+<header class="app-header">
+  <div class="brand">
+    <img src="favicon.png" alt="" class="brand-icon" aria-hidden="true">
+    <span class="brand-title">Didi's Whiteboard</span>
+    <span class="brand-divider hide-mobile" aria-hidden="true"></span>
+    <span class="brand-subtitle hide-mobile">@dicarvalho.prof</span>
+  </div>
+
+  <div class="header-meta hide-mobile">
+    <span id="word-counter">0 palavras · 0 caracteres</span>
+    <span id="save-indicator"></span>
+  </div>
+
+  <nav class="mode-switch" role="tablist">
+    <button class="mode-tab active" id="tabBoard" onclick="switchTab('Quadro', this)" role="tab" aria-selected="true">
+      <i class="fa-solid fa-pen-to-square"></i> <span class="tab-label">Whiteboard</span>
+    </button>
+    <button class="mode-tab" id="tabGame" onclick="switchTab('Modo-game', this)" role="tab" aria-selected="false">
+      <i class="fa-solid fa-gamepad"></i> <span class="tab-label">Game mode</span>
+    </button>
+  </nav>
+
+  <div class="header-actions">
+    <div class="tool-toggle" role="group" aria-label="Modo de ferramenta">
+      <button class="tool-toggle-btn active" id="toolTextBtn" onclick="setToolMode('text')" title="Modo Texto" aria-label="Modo Texto">
+        <i class="fa-solid fa-font"></i>
+      </button>
+      <button class="tool-toggle-btn" id="toolDrawBtn" onclick="setToolMode('draw')" title="Modo Desenho" aria-label="Modo Desenho">
+        <i class="fa-solid fa-pencil"></i>
+      </button>
+    </div>
+
+    <!-- Grade de fundo -->
+    <button class="header-icon-btn" id="gridToggleBtn" onclick="toggleGrid()" data-tooltip="Grade de fundo" aria-label="Grade de fundo">
+      <i class="fa-solid fa-border-all"></i>
+    </button>
+
+    <!-- Tema claro/escuro (sai no mobile) -->
+    <button class="header-icon-btn hide-mobile" id="themeToggleBtn" onclick="toggleTheme()" data-tooltip="Tema claro/escuro" aria-label="Tema claro/escuro">
+      <i class="fa-solid fa-moon"></i>
+    </button>
+
+    <!-- Modo apresentação (sai no mobile) -->
+    <button class="header-icon-btn hide-mobile" id="presentationBtn" onclick="enterPresentationMode()" data-tooltip="Modo apresentação" aria-label="Modo apresentação">
+      <i class="fa-solid fa-expand"></i>
+    </button>
+
+    <button class="header-icon-btn" onclick="promptClearBoard()" data-tooltip="Limpar quadro" aria-label="Limpar quadro">
+      <i class="fa-solid fa-trash-can"></i>
+    </button>
+
+    <button class="tutorial-btn" onclick="openModal('tutorialModal')">
+      <i class="fa-solid fa-circle-question"></i> <span class="tutorial-label">Aprenda a usar</span>
+    </button>
+  </div>
+</header>
+
+<!-- ==========================================================================
+     WRAPPER COM SLIDE
+     ========================================================================== -->
+<div id="screens-wrapper">
+
+  <!-- WHITEBOARD -->
+  <div id="screen-Quadro" class="screen-slide">
+    <div id="quadro-layout">
+      <div id="canvas-container" class="text-mode">
+        <canvas id="whiteboard"></canvas>
+
+        <div id="text-format-bar">
+          <button class="fmt-color-btn" title="Cor do texto" aria-label="Cor do texto">
+            <span class="color-dot" id="fmtColorDot"></span>
+            <input type="color" id="fmtColorInput" value="#000000">
+          </button>
+
+          <div class="highlight-wrapper">
+            <button class="fmt-btn" id="fmtHighlight" onclick="toggleHighlightPalette(event)" title="Marca-texto" aria-label="Marca-texto">
+              <i class="fa-solid fa-highlighter"></i>
+            </button>
+            <div id="highlight-palette">
+              <button class="highlight-swatch" style="background:#ffe680" onclick="applyHighlight('#ffe680')" title="Amarelo"></button>
+              <button class="highlight-swatch" style="background:#b8e6c1" onclick="applyHighlight('#b8e6c1')" title="Verde"></button>
+              <button class="highlight-swatch" style="background:#ffb3c6" onclick="applyHighlight('#ffb3c6')" title="Rosa"></button>
+              <button class="highlight-swatch" style="background:#a8d5ff" onclick="applyHighlight('#a8d5ff')" title="Azul"></button>
+              <button class="highlight-swatch remove" onclick="applyHighlight(null)" title="Remover">
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="fmt-divider"></div>
+
+          <button class="fmt-btn" id="fmtBold" onclick="toggleTextStyle('bold')" title="Negrito (Ctrl+B)" aria-label="Negrito">
+            <i class="fa-solid fa-bold"></i>
+          </button>
+          <button class="fmt-btn" id="fmtItalic" onclick="toggleTextStyle('italic')" title="Itálico (Ctrl+I)" aria-label="Itálico">
+            <i class="fa-solid fa-italic"></i>
+          </button>
+          <button class="fmt-btn" id="fmtUnderline" onclick="toggleTextStyle('underline')" title="Sublinhado (Ctrl+U)" aria-label="Sublinhado">
+            <i class="fa-solid fa-underline"></i>
+          </button>
+          <button class="fmt-btn" id="fmtStrike" onclick="toggleTextStyle('strikethrough')" title="Tachado" aria-label="Tachado">
+            <i class="fa-solid fa-strikethrough"></i>
+          </button>
+
+          <div class="fmt-divider"></div>
+
+          <button class="fmt-btn font-size-btn" onclick="changeFontSize(-2)" title="Diminuir fonte" aria-label="Diminuir fonte">
+            A−
+          </button>
+          <button class="fmt-btn font-size-btn" onclick="changeFontSize(2)" title="Aumentar fonte" aria-label="Aumentar fonte">
+            A+
+          </button>
+
+          <div class="fmt-divider"></div>
+
+          <button class="fmt-btn" id="fmtSearch" onclick="searchOnGoogle()" title="Pesquisar no Google" aria-label="Pesquisar no Google">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </button>
+          <button class="fmt-btn" id="fmtImages" onclick="openGoogleImages()" title="Google Imagens" aria-label="Google Imagens">
+            <i class="fa-solid fa-image"></i>
+          </button>
+          <button class="fmt-btn" id="fmtTranslate" onclick="openGoogleTranslate()" title="Google Translate" aria-label="Google Translate">
+            <i class="fa-solid fa-language"></i>
+          </button>
+          <button class="fmt-btn" id="fmtCambridge" onclick="openCambridge()" title="Cambridge Dictionary" aria-label="Cambridge Dictionary">
+            <i class="fa-solid fa-book-open"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME MODE -->
+  <div id="screen-Modo-game" class="screen-slide">
+    <div style="text-align:center; margin-bottom: 24px;">
+      <button class="phrase-btn" style="width:auto; padding:10px 20px; font-weight:600; background: var(--primary-red); color:#fff;" onclick="startHangman()">
+        SORTEAR PALAVRA DO QUADRO
+      </button>
+    </div>
+
+    <div class="game-container">
+      <div class="hangman-word-row">
+        <div id="hangman-word-display">_ _ _ _ _</div>
+      </div>
+
+      <div class="hangman-main-row">
+        <canvas id="hangman-canvas" width="180" height="220"></canvas>
+      </div>
+
+      <div class="keyboard-grid" id="game-keyboard"></div>
+
+      <div id="game-message-area">
+        <p id="game-message" style="font-weight:600; font-size:16px; margin:0;"></p>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ==========================================================================
+     MODAIS
+     ========================================================================== -->
+
+<div id="iconModal" class="modal-overlay" onclick="if(event.target === this) closeModal('iconModal')">
+  <div class="modal-card">
+    <h3><i class="fa-solid fa-icons"></i> Selecione um ícone</h3>
+    <div class="icon-grid" id="icon-picker-grid"></div>
+    <div class="modal-actions">
+      <button class="btn-modal btn-modal-secondary" onclick="closeModal('iconModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="postItModal" class="modal-overlay" onclick="if(event.target === this) closeModal('postItModal')">
+  <div class="modal-card" style="max-width: 320px;">
+    <h3><i class="fa-solid fa-note-sticky"></i> Escolha um post-it</h3>
+    <div class="postit-grid">
+      <button class="postit-option" style="background:#ffe680" onclick="addPostIt('#ffe680')" aria-label="Post-it amarelo"></button>
+      <button class="postit-option" style="background:#ffb3c6" onclick="addPostIt('#ffb3c6')" aria-label="Post-it rosa"></button>
+      <button class="postit-option" style="background:#b8e6c1" onclick="addPostIt('#b8e6c1')" aria-label="Post-it verde"></button>
+      <button class="postit-option" style="background:#a8d5ff" onclick="addPostIt('#a8d5ff')" aria-label="Post-it azul"></button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal btn-modal-secondary" onclick="closeModal('postItModal')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div id="colorPaletteModal" class="modal-overlay" onclick="if(event.target === this) closeModal('colorPaletteModal')">
+  <div class="modal-card" style="max-width: 340px;">
+    <h3><i class="fa-solid fa-palette"></i> Escolha a cor</h3>
+    <div class="color-swatch-grid">
+      <button type="button" class="color-swatch" style="background:#000000" data-color="#000000" onclick="selectColorFromModal('#000000', this)" aria-label="Preto"></button>
+      <button type="button" class="color-swatch" style="background:#555555" data-color="#555555" onclick="selectColorFromModal('#555555', this)" aria-label="Cinza escuro"></button>
+      <button type="button" class="color-swatch" style="background:#999999" data-color="#999999" onclick="selectColorFromModal('#999999', this)" aria-label="Cinza"></button>
+      <button type="button" class="color-swatch" style="background:#ffffff" data-color="#ffffff" onclick="selectColorFromModal('#ffffff', this)" aria-label="Branco"></button>
+      <button type="button" class="color-swatch" style="background:#c20000" data-color="#c20000" onclick="selectColorFromModal('#c20000', this)" aria-label="Vermelho"></button>
+      <button type="button" class="color-swatch" style="background:#ff66b2" data-color="#ff66b2" onclick="selectColorFromModal('#ff66b2', this)" aria-label="Rosa"></button>
+      <button type="button" class="color-swatch" style="background:#ff8800" data-color="#ff8800" onclick="selectColorFromModal('#ff8800', this)" aria-label="Laranja"></button>
+      <button type="button" class="color-swatch" style="background:#ffcc00" data-color="#ffcc00" onclick="selectColorFromModal('#ffcc00', this)" aria-label="Amarelo"></button>
+      <button type="button" class="color-swatch" style="background:#008800" data-color="#008800" onclick="selectColorFromModal('#008800', this)" aria-label="Verde"></button>
+      <button type="button" class="color-swatch" style="background:#00c8a0" data-color="#00c8a0" onclick="selectColorFromModal('#00c8a0', this)" aria-label="Turquesa"></button>
+      <button type="button" class="color-swatch" style="background:#00b0ff" data-color="#00b0ff" onclick="selectColorFromModal('#00b0ff', this)" aria-label="Ciano"></button>
+      <button type="button" class="color-swatch" style="background:#0044cc" data-color="#0044cc" onclick="selectColorFromModal('#0044cc', this)" aria-label="Azul"></button>
+      <button type="button" class="color-swatch" style="background:#3d2bb5" data-color="#3d2bb5" onclick="selectColorFromModal('#3d2bb5', this)" aria-label="Índigo"></button>
+      <button type="button" class="color-swatch" style="background:#8800cc" data-color="#8800cc" onclick="selectColorFromModal('#8800cc', this)" aria-label="Roxo"></button>
+      <button type="button" class="color-swatch" style="background:#795548" data-color="#795548" onclick="selectColorFromModal('#795548', this)" aria-label="Marrom"></button>
+      <button type="button" class="color-swatch" style="background:#c8a27a" data-color="#c8a27a" onclick="selectColorFromModal('#c8a27a', this)" aria-label="Bege"></button>
+
+      <button type="button" class="color-swatch color-swatch-custom" aria-label="Cor personalizada">
+        <i class="fa-solid fa-droplet"></i>
+        <input type="color" id="modal-custom-picker" value="#000000" onchange="selectColorFromModal(this.value, this.closest('.color-swatch'))">
+      </button>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-modal btn-modal-secondary" onclick="closeModal('colorPaletteModal')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<div id="confirmModal" class="modal-overlay" onclick="if(event.target === this) closeConfirmModal()">
+  <div class="modal-card" style="text-align:center;">
+    <h3 id="confirmModalTitle">Confirmação</h3>
+    <p id="confirmModalMessage" style="font-size:14px; color:#555; margin-bottom:20px;"></p>
+    <div class="modal-actions">
+      <button class="btn-modal btn-modal-secondary" onclick="closeConfirmModal()">Cancelar</button>
+      <button id="confirmModalActionBtn" class="btn-modal btn-modal-primary">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<div id="tutorialModal" class="modal-overlay" onclick="if(event.target === this) closeModal('tutorialModal')">
+  <div class="modal-card">
+    <h3><i class="fa-solid fa-graduation-cap"></i> Tutorial rápido</h3>
+
+    <h4 class="tutorial-section-title"><i class="fa-solid fa-keyboard"></i> Atalhos</h4>
+    <ul class="shortcut-list">
+      <li><span><i class="fa-solid fa-font"></i> Modo texto</span><span class="shortcut-key">Ctrl + T</span></li>
+      <li><span><i class="fa-solid fa-pen"></i> Modo desenho</span><span class="shortcut-key">Ctrl + L</span></li>
+      <li><span><i class="fa-solid fa-bold"></i> Negrito</span><span class="shortcut-key">Ctrl + B</span></li>
+      <li><span><i class="fa-solid fa-italic"></i> Itálico</span><span class="shortcut-key">Ctrl + I</span></li>
+      <li><span><i class="fa-solid fa-underline"></i> Sublinhado</span><span class="shortcut-key">Ctrl + U</span></li>
+      <li><span><i class="fa-solid fa-rotate-left"></i> Desfazer</span><span class="shortcut-key">Ctrl + Z</span></li>
+      <li><span><i class="fa-solid fa-rotate-right"></i> Refazer</span><span class="shortcut-key">Ctrl + Shift + Z</span></li>
+      <li><span><i class="fa-solid fa-floppy-disk"></i> Salvar</span><span class="shortcut-key">Ctrl + S</span></li>
+      <li><span><i class="fa-solid fa-expand"></i> Sair do modo apresentação</span><span class="shortcut-key">Esc</span></li>
+      <li><span><i class="fa-solid fa-trash-can"></i> Excluir</span><span class="shortcut-key">Delete</span></li>
+    </ul>
+
+    <h4 class="tutorial-section-title"><i class="fa-solid fa-computer-mouse"></i> Cliques</h4>
+    <ul class="shortcut-list">
+      <li><span><i class="fa-solid fa-i-cursor"></i> Duplo clique (vazio)</span><span>Criar texto</span></li>
+      <li><span><i class="fa-solid fa-i-cursor"></i> Duplo clique (texto)</span><span>Editar texto</span></li>
+      <li><span><i class="fa-solid fa-arrows-up-down-left-right"></i> Clique simples</span><span>Mover / selecionar</span></li>
+      <li><span><i class="fa-solid fa-highlighter"></i> Marca-texto</span><span>Destaca a seleção</span></li>
+      <li><span><i class="fa-solid fa-paste"></i> Ctrl + V</span><span>Colar imagem no quadro</span></li>
+    </ul>
+
+    <h4 class="tutorial-section-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Extras</h4>
+    <ul class="shortcut-list">
+      <li><span><i class="fa-solid fa-border-all"></i> Grade de fundo</span><span>Alinha o conteúdo</span></li>
+      <li><span><i class="fa-solid fa-moon"></i> Tema escuro</span><span>Fundo azul-escuro</span></li>
+      <li><span><i class="fa-solid fa-expand"></i> Modo apresentação</span><span>Esconde a UI</span></li>
+    </ul>
+
+    <button class="btn-modal btn-modal-primary" style="width:100%; margin-top:15px;" onclick="closeModal('tutorialModal')">Entendi!</button>
+  </div>
+</div>
+
+<div id="licenseModal" class="modal-overlay" onclick="if(event.target === this) closeModal('licenseModal')">
+  <div class="modal-card" style="text-align:center;">
+    <h3><i class="fa-solid fa-scale-balanced"></i> Licença & Termos de uso</h3>
+    <div style="text-align:left; font-size:13px; color:#444; line-height:1.6; margin:15px 0;">
+      <p style="margin-bottom:10px;">
+        <strong><i class="fa-solid fa-circle-check" style="color:#2e7d32;"></i> Uso gratuito:</strong> Esta ferramenta é inteiramente gratuita para professores, alunos e educadores utilizarem em suas aulas.
+      </p>
+      <p style="margin-bottom:0;">
+        <strong><i class="fa-solid fa-ban" style="color: var(--primary-red);"></i> Proibida a comercialização:</strong> É estritamente proibida a venda, revenda ou distribuição comercial deste código e software.
+      </p>
+    </div>
+    <button class="btn-modal btn-modal-primary" style="width:100%; margin-top:10px;" onclick="closeModal('licenseModal')">Entendi</button>
+  </div>
+</div>
+
+<div id="toast" class="toast-notification"></div>
+
+<!-- ==========================================================================
+     MODAL "FUNCIONA MELHOR NO PC" (mobile)
+     Aparece 1x por dia em telas < 768px.
+     ========================================================================== -->
+<div id="desktop-modal" class="modal-overlay">
+  <div class="modal-card desktop-card">
+    <div class="desktop-icon">
+      <i class="fa-solid fa-desktop"></i>
+    </div>
+    <h3>Funciona melhor no computador</h3>
+    <p class="desktop-text">
+      Esta lousa foi desenvolvida para telas grandes.<br>
+      No computador você tem mais espaço, ferramentas<br>
+      e uma experiência completa.
+    </p>
+
+    <div class="desktop-link-box">
+      <span class="desktop-link" id="desktop-link-text">dididoingles.github.io/whiteboard</span>
+      <button class="desktop-copy-btn" id="btn-copy-link" aria-label="Copiar link">
+        <i class="fa-solid fa-copy"></i>
+      </button>
+    </div>
+
+    <button class="btn-modal btn-modal-primary desktop-continue-btn" id="btn-desktop-continue">
+      Continuar no celular mesmo assim
+    </button>
+  </div>
+</div>
+
+<script src="js/script.js"></script>
+</body>
+</html>
