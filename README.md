@@ -1,4 +1,4 @@
-# Didi's Whiteboard
+# White.board
 
 ![Preview da ferramenta](https://dididoingles.github.io/Whiteboard/preview.png)
 
