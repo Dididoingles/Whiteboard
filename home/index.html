@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>White.board</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Gochi+Hand&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #222222;
+      --paper: #ffffff;
+      --accent: #c20000;
+      --accent-dark: #a30000;
+      --muted: #666666;
+      --shadow-hard-sm: 2px 3px 0 rgba(34, 34, 34, .85);
+      --border-soft: 1px solid rgba(34, 34, 34, 0.06);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* ---------- SCROLLBAR INVISÍVEL (existe, mas trilha com opacidade 0) ---------- */
+    /* Firefox */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: transparent transparent;
+    }
+    /* WebKit (Chrome, Edge, Safari) */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+      opacity: 0;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: transparent;
+    }
+
+    body {
+      background: #FFFFFF;
+      font-family: 'Poppins', sans-serif;
+      color: var(--ink);
+      min-height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;   /* alinha o container à esquerda */
+      padding: 24px;
+      overflow: hidden;
+    }
+
+    .opening-container {
+      max-width: 1180px;
+      width: 100%;
+      height: min(94dvh, 820px);
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;    /* vídeo fixo à esquerda */
+      gap: 0px;                      /* gap reduzido para aproximar o conteúdo do vídeo */
+      background: transparent;
+      /* margem zero à esquerda para colar na borda */
+      margin-left: -0px;
+      margin-right: auto;
+    }
+
+    /* ---------- LADO ESQUERDO: VÍDEO FIXO À ESQUERDA ---------- */
+    .video-side {
+      flex: 0 0 70%;
+      max-width: 70%;
+      height: 70%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;    /* vídeo colado à esquerda */
+      position: relative;
+    }
+
+    .video-wrapper {
+      width: 70%;
+      height: 70%;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      position: relative;
+    }
+
+    .video-wrapper video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      -webkit-mask-image: radial-gradient(ellipse at center, #000 50%, transparent 90%);
+      mask-image: radial-gradient(ellipse at center, #000 50%, transparent 90%);
+      background: transparent;
+    }
+
+    /* ---------- LADO DIREITO: CONTEÚDO PRÓXIMO AO VÍDEO ---------- */
+    .content-side {
+      flex: 1 1 30%;
+      max-width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      justify-content: center;
+      gap: 20px;                      /* gap reduzido */
+      text-align: left;
+      opacity: 0;
+      transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+      will-change: opacity;
+      /* puxa o conteúdo para a esquerda, encostando no vídeo */
+      margin-left: -200px;
+    }
+
+    .content-side.reveal {
+      opacity: 1;
+    }
+
+    .description {
+      font-family: 'Space Mono', monospace;
+      font-weight: 400;
+      font-size: 1rem;
+      line-height: 1.5;
+      text-align: left;
+      color: var(--ink);
+      text-wrap: pretty;              /* wrap pretty conforme solicitado */
+      max-width: 100%;
+    }
+
+    .description i {
+      color: var(--accent);
+      margin-right: 6px;
+    }
+
+    /* Botão menor, com ícone DEPOIS da palavra */
+    .btn-acessar {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      background: var(--accent);
+      color: #ffffff;
+      font-family: 'Poppins', sans-serif;
+      font-weight: 600;
+      font-size: 0.95rem;             /* fonte reduzida */
+      padding: 10px 20px;             /* padding reduzido */
+      border: 2px solid var(--ink);
+      border-radius: 11px;
+      box-shadow: var(--shadow-hard-sm);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.2s;
+      text-decoration: none;
+      width: auto;
+      min-width: 110px;               /* menor */
+      letter-spacing: -0.01em;
+    }
+
+    .btn-acessar i {
+      font-size: 0.85rem;
+      transition: transform 0.2s;
+    }
+
+    .btn-acessar:hover {
+      background: var(--accent-dark);
+      transform: translate(-2px, -2px);
+      box-shadow: 4px 5px 0 rgba(34, 34, 34, .85);
+    }
+
+    .btn-acessar:active {
+      transform: translate(0px, 0px);
+      box-shadow: 1px 2px 0 rgba(34, 34, 34, .85);
+    }
+
+    /* ---------- MOBILE (breakpoint 1024px) ---------- */
+    @media (max-width: 1024px) {
+      body {
+        padding: calc(64px + env(safe-area-inset-top, 0px) + 16px) 18px calc(64px + env(safe-area-inset-bottom, 0px) + 16px);
+        overflow-y: auto;
+        min-height: 100dvh;
+        background: #FFFFFF;
+        display: flex;
+        align-items: center;
+        justify-content: center;       /* centraliza o container no mobile */
+      }
+
+      .opening-container {
+        flex-direction: column;
+        height: auto;
+        max-height: none;
+        gap: 20px;
+        padding: 0;
+        align-items: center;
+        justify-content: center;
+        min-height: 500px;
+        margin-left: auto;
+        margin-right: auto;
+        width: 100%;
+      }
+
+      .video-side {
+        flex: 1 1 auto;
+        max-width: 100%;
+        width: 100%;
+        height: auto;
+        aspect-ratio: 16 / 9;
+        min-height: 200px;
+        justify-content: center;       /* centraliza o vídeo no mobile */
+        align-items: center;
+      }
+
+      .video-wrapper {
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+      }
+
+      .video-wrapper video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        -webkit-mask-image: radial-gradient(ellipse at center, #000 55%, transparent 95%);
+        mask-image: radial-gradient(ellipse at center, #000 55%, transparent 95%);
+      }
+
+      .content-side {
+        flex: 0 0 auto;
+        max-width: 100%;
+        width: 100%;
+        align-items: center;
+        text-align: center;
+        gap: 16px;
+        padding: 0 8px;
+        margin-left: 0;                /* reseta margem negativa no mobile */
+      }
+
+      .description {
+        font-size: 0.95rem;
+        text-align: center;
+        text-align: left;
+      }
+
+      .btn-acessar {
+        font-size: 0.9rem;
+        padding: 9px 18px;
+        min-width: 100px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      .description {
+        font-size: 0.9rem;
+        text-align: left;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .content-side {
+        transition: opacity 0.2s;
+      }
+      .btn-acessar {
+        transition: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="opening-container">
+    <div class="video-side">
+      <div class="video-wrapper">
+        <video id="openingVideo" src="https://dididoingles.github.io/Whiteboard/boardmars.mp4" playsinline muted></video>
+      </div>
+    </div>
+
+    <div class="content-side" id="contentSide">
+      <p class="description">
+        <i class="fas fa-pen-fancy"></i> Essa á nossa whiteboard. Transforme seu conteúdo em um joguinho, traduza ou pesquise termos durante a aula.
+      </p>
+      <button class="btn-acessar" id="acessarBtn">
+        Acessar <i class="fas fa-arrow-right"></i>
+      </button>
+    </div>
+  </main>
+
+  <script>
+    (function() {
+      const video = document.getElementById('openingVideo');
+      const contentSide = document.getElementById('contentSide');
+      const acessarBtn = document.getElementById('acessarBtn');
+
+      video.loop = false;
+      video.controls = false;
+
+      let hasEnded = false;
+
+      function revealContent() {
+        if (!hasEnded) {
+          hasEnded = true;
+          contentSide.classList.add('reveal');
+        }
+      }
+
+      video.addEventListener('ended', revealContent);
+
+      video.addEventListener('error', function() {
+        console.warn('Vídeo não pôde ser carregado, revelando conteúdo por fallback.');
+        setTimeout(revealContent, 800);
+      });
+
+      video.addEventListener('loadedmetadata', function() {
+        if (video.currentTime > 0 && Math.abs(video.currentTime - video.duration) < 0.3) {
+          revealContent();
+        }
+      });
+
+      video.play().catch(function(error) {
+        console.warn('Autoplay do vídeo falhou:', error);
+        setTimeout(revealContent, 3000);
+      });
+
+      video.addEventListener('canplay', function onCanPlay() {
+        if (video.duration && !hasEnded) {
+          const remaining = video.duration - video.currentTime;
+          if (remaining > 0 && remaining < 60) {
+            setTimeout(() => {
+              if (!hasEnded && video.ended) {
+                revealContent();
+              } else if (!hasEnded && Math.abs(video.currentTime - video.duration) < 0.3) {
+                revealContent();
+              }
+            }, (remaining * 1000) + 500);
+          }
+        }
+        video.removeEventListener('canplay', onCanPlay);
+      });
+
+      setTimeout(() => {
+        if (!hasEnded) {
+          console.warn('Fallback de segurança: revelando conteúdo após timeout.');
+          revealContent();
+        }
+      }, 15000);
+
+      /* ---------- BOTÃO ACESSAR: LINK ---------- */
+      acessarBtn.addEventListener('click', function() {
+        window.location.href = 'https://dididoingles.github.io/Whiteboard/';   /* ← TROQUE PELO LINK REAL */
+      });
+
+      video.addEventListener('ended', function() {
+        video.pause();
+      });
+    })();
+  </script>
+</body>
+</html>
