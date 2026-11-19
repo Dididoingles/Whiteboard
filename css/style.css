@@ -100,7 +100,7 @@
      2. HEADER UNIFICADO
      ========================================================================== */
   .app-header {
-    background: var(--primary-red);
+    background: #cc2f2f;
     color: #fff;
     display: flex;
     align-items: center;
