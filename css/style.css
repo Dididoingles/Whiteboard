@@ -30,7 +30,7 @@
   body.dark-theme {
     --bg-main: #000000;
     --text-color: #e6f1ff;
-    --panel-bg: #0f2438;
+    --panel-bg: #000000;
     --border-color: #1e3a5f;
   }
   
