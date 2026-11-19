@@ -39,7 +39,7 @@
     color: var(--text-color);
   }
   
-  body.dark-theme #canvas-container { background: #061220; }
+  body.dark-theme #canvas-container { background: #000000; }
   
   body.dark-theme .drawer-title { border-bottom-color: #1e3a5f; }
   body.dark-theme .side-item { background: #0f2438; border-color: #1e3a5f; color: #e6f1ff; }
