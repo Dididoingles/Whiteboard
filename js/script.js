@@ -142,7 +142,7 @@
        const pattern = createGridPattern();
        canvas.setBackgroundColor(pattern, () => canvas.renderAll());
      } else {
-       const solid = currentTheme === 'dark' ? '#0a1929' : '#ffffff';
+       const solid = currentTheme === 'dark' ? '#000000' : '#ffffff';
        canvas.setBackgroundColor(solid, () => canvas.renderAll());
      }
    }
@@ -156,7 +156,7 @@
      const ctx = offCanvas.getContext('2d');
    
      /* Fundo base (mesmo da cor sólida) */
-     const bg = currentTheme === 'dark' ? '#0a1929' : '#ffffff';
+     const bg = currentTheme === 'dark' ? '#000000' : '#ffffff';
      ctx.fillStyle = bg;
      ctx.fillRect(0, 0, size, size);
    
@@ -207,7 +207,7 @@
      canvas = new fabric.Canvas('whiteboard', {
        width: container.clientWidth - 20,
        height: container.clientHeight - 20,
-       backgroundColor: currentTheme === 'dark' ? '#0a1929' : '#ffffff',
+       backgroundColor: currentTheme === 'dark' ? '#000000' : '#ffffff',
        isDrawingMode: false,
        preserveObjectStacking: true
      });
