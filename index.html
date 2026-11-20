@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="icon" type="image/png" href="favicon.ico">
+        <link rel="icon" type="image/png" href="https://dididoingles.github.io/estudeconosco/favicon.png">
         <title>White.board | Quadro interativo</title>
         
         <!-- SEO / compartilhamento -->
@@ -40,92 +40,38 @@
 <div id="global-tooltip" class="global-tooltip"></div>
 
 <!-- ==========================================================================
-     BOTÃO FLUTUANTE + OVERLAY + GAVETA
+     SIDEBAR DESKTOP COM ALÇA PARA ABRIR / COLAPSAR
      ========================================================================== -->
-<button class="nav-drawer-btn" id="openDrawerBtn" aria-label="Abrir ferramentas">
-  <i class="fa-solid fa-chevron-right"></i>
-</button>
-
-<div class="drawer-overlay" id="drawerOverlay"></div>
-
-<aside id="sidebar">
-  <div class="drawer-close-container">
-    <button class="drawer-close-sidebar-btn" id="closeDrawerBtn" aria-label="Fechar">
-      <i class="fa-solid fa-xmark"></i>
-    </button>
-  </div>
-
-  <div class="drawer-title">
-    <i class="fa-solid fa-toolbox"></i>
-    <span>Toolkit</span>
-  </div>
-
-  <div class="tool-grid">
-    <!-- Linha 1 -->
-    <div class="side-item" onclick="openIconModal()" data-tooltip="Inserir ícone">
-      <i class="fa-solid fa-icons"></i>
-    </div>
-    <div class="side-item" onclick="openPostItModal()" data-tooltip="Post-it">
-      <i class="fa-solid fa-note-sticky"></i>
-    </div>
-    <div class="side-item" onclick="openColorPaletteModal()" data-tooltip="Paleta de cores">
-      <i class="fa-solid fa-palette"></i>
-    </div>
-
-    <!-- Linha 2 -->
-    <div class="side-item" onclick="undo()" data-tooltip="Desfazer (Ctrl+Z)">
-      <i class="fa-solid fa-rotate-left"></i>
-    </div>
-    <div class="side-item" id="redoBtn" onclick="redo()" data-tooltip="Refazer (Ctrl+Shift+Z)">
-      <i class="fa-solid fa-rotate-right"></i>
-    </div>
-    <div class="side-item" onclick="promptDeleteSelected()" data-tooltip="Excluir selecionado">
-      <i class="fa-solid fa-trash-can"></i>
-    </div>
-
-    <!-- Linha 3 -->
-    <div class="side-item" onclick="promptClearBoard()" data-tooltip="Limpar quadro">
-      <i class="fa-solid fa-broom"></i>
-    </div>
-    <div class="side-item" onclick="openGoogleImages()" data-tooltip="Google Imagens">
-      <i class="fa-solid fa-image"></i>
-    </div>
-    <div class="side-item" onclick="openGoogleTranslate()" data-tooltip="Google Translate">
-      <i class="fa-solid fa-language"></i>
-    </div>
-
-    <div class="grid-separator" aria-hidden="true"></div>
-
-    <!-- Linha 4 -->
-    <div class="side-item" onclick="downloadCanvas()" data-tooltip="Baixar PNG" style="color:#2e7d32;">
-      <i class="fa-solid fa-download"></i>
-    </div>
-    <div class="side-item" onclick="openCambridge()" data-tooltip="Cambridge Dictionary">
-      <i class="fa-solid fa-book-open"></i>
-    </div>
-    <div class="side-item" onclick="openMySite()" data-tooltip="Meu site" style="color:#c00000;">
-      <i class="fa-solid fa-globe"></i>
-    </div>
-    <div class="side-item" onclick="openLibrary()" data-tooltip="Biblioteca" style="color:#c00000;">
-      <i class="fa-solid fa-book-bookmark"></i>
-    </div>
-    <div class="side-item" onclick="manualSave()" data-tooltip="Salvar agora" style="color:#1976d2;">
-      <i class="fa-solid fa-floppy-disk"></i>
-    </div>
-  </div>
-
-  <hr class="drawer-divider">
-
-  <div class="brush-size-container">
-    <span class="control-label">Brush size</span>
-    <input type="range" id="brush-size" min="1" max="40" value="3" oninput="updateBrushSize(this.value)">
-  </div>
-
-  <footer class="drawer-footer">
-    <button onclick="openModal('licenseModal')">Licença & Termos de uso</button>
-    <div class="credits">Desenvolvido por Diandra C. @dicarvalho.prof</div>
-  </footer>
-</aside>
+     <aside id="sidebar" aria-label="Ferramentas do quadro">
+        <div class="sidebar-inner">
+          <div class="tool-grid">
+            <div class="side-item" onclick="openIconModal()" data-tooltip="Inserir ícone">
+              <i class="fa-solid fa-icons"></i>
+              <span class="side-label"></span>
+            </div>
+            <div class="side-item" onclick="openPostItModal()" data-tooltip="Post-it">
+              <i class="fa-solid fa-note-sticky"></i>
+              <span class="side-label"></span>
+            </div>
+            <div class="side-item" onclick="undo()" data-tooltip="Desfazer (Ctrl+Z)">
+              <i class="fa-solid fa-rotate-left"></i>
+              <span class="side-label"></span>
+            </div>
+            <div class="side-item" onclick="downloadCanvas()" data-tooltip="Baixar PNG" style="color:#5f5e5ee0;">
+              <i class="fa-solid fa-download"></i>
+              <span class="side-label"></span>
+            </div>
+            <div class="side-item" onclick="manualSave()" data-tooltip="Salvar agora" style="color:#333333a4;">
+              <i class="fa-solid fa-floppy-disk"></i>
+              <span class="side-label"></span>
+            </div>
+          </div>
+      
+          <hr class="drawer-divider">
+      
+      
+       
+      </aside>
 
 <!-- ==========================================================================
      HEADER UNIFICADO
@@ -145,10 +91,10 @@
 
   <nav class="mode-switch" role="tablist">
     <button class="mode-tab active" id="tabBoard" onclick="switchTab('Quadro', this)" role="tab" aria-selected="true">
-      <i class="fa-solid fa-pen-to-square"></i> <span class="tab-label">Whiteboard</span>
+      <i class="fa-solid fa-pen-to-square"></i> <span class="tab-label"></span>
     </button>
     <button class="mode-tab" id="tabGame" onclick="switchTab('Modo-game', this)" role="tab" aria-selected="false">
-      <i class="fa-solid fa-gamepad"></i> <span class="tab-label">Game mode</span>
+      <i class="fa-solid fa-gamepad"></i> <span class="tab-label"></span>
     </button>
   </nav>
 
@@ -162,7 +108,7 @@
       </button>
     </div>
 
-      <!-- Paleta de cores -->
+    <!-- Paleta de cores -->
     <button class="header-icon-btn" onclick="openColorPaletteModal()" data-tooltip="Paleta de cores" aria-label="Paleta de cores">
       <i class="fa-solid fa-palette"></i>
     </button>
@@ -295,6 +241,28 @@
 </div>
 
 <!-- ==========================================================================
+     BARRA INFERIOR MOBILE (inserir ícone, post-it, paleta de cores, desfazer, baixar)
+     ========================================================================== -->
+     <nav class="mobile-bottom-bar" id="mobileBottomBar" aria-label="Ferramentas rápidas">
+        <span class="mobile-nav__thumb" id="mobileNavThumb" aria-hidden="true"></span>
+        <button type="button" class="mobile-bottom-btn" onclick="openIconModal()" aria-label="Inserir ícone">
+          <i class="fa-solid fa-icons"></i>
+        </button>
+        <button type="button" class="mobile-bottom-btn" onclick="openPostItModal()" aria-label="Post-it">
+          <i class="fa-solid fa-note-sticky"></i>
+        </button>
+        <button type="button" class="mobile-bottom-btn" onclick="openColorPaletteModal()" aria-label="Paleta de cores">
+          <i class="fa-solid fa-palette"></i>
+        </button>
+        <button type="button" class="mobile-bottom-btn" onclick="undo()" aria-label="Desfazer">
+          <i class="fa-solid fa-rotate-left"></i>
+        </button>
+        <button type="button" class="mobile-bottom-btn" onclick="downloadCanvas()" aria-label="Baixar PNG">
+          <i class="fa-solid fa-download"></i>
+        </button>
+      </nav>
+
+<!-- ==========================================================================
      MODAIS
      ========================================================================== -->
 
@@ -303,7 +271,7 @@
     <h3><i class="fa-solid fa-icons"></i> Selecione um ícone</h3>
     <div class="icon-grid" id="icon-picker-grid"></div>
     <div class="modal-actions">
-      <button class="btn-modal btn-modal-secondary" onclick="closeModal('iconModal')">Cancelar</button>
+      <button class="btn-modal btn-modal-secondary" onclick="closeModal('iconModal')">Fechar</button>
     </div>
   </div>
 </div>
