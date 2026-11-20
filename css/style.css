@@ -17,11 +17,16 @@
     --shadow-card: 0 2px 10px rgba(0,0,0,0.05);
     --shadow-modal: 0 15px 30px rgba(0,0,0,0.2);
     --shadow-canvas: 0 4px 10px rgba(0,0,0,0.15);
-    --shadow-drawer: 5px 0 20px rgba(0,0,0,0.1);
+    --shadow-drawer: 0 8px 24px rgba(0,0,0,0.12);
   
     --tr-fast: 0.2s ease;
     --tr-mid: 0.25s ease;
     --tr-slide: 0.55s cubic-bezier(0.65, 0, 0.35, 1);
+  
+    --header-h: 58px;
+    --sidebar-w: 210px;
+    --sidebar-collapsed-w: 68px;
+    --mobile-bar-h: 58px;
   }
   
   /* ==========================================================================
@@ -41,11 +46,9 @@
   
   body.dark-theme #canvas-container { background: #000000; }
   
-  body.dark-theme .drawer-title { border-bottom-color: #1e3a5f; }
-  body.dark-theme .side-item { background: #0f2438; border-color: #1e3a5f; color: #e6f1ff; }
-  body.dark-theme .side-item:hover { background: #163049; border-color: var(--primary-red); color: #fff; }
-  body.dark-theme .drawer-divider,
-  body.dark-theme .tool-grid .grid-separator { border-top-color: #1e3a5f; background-color: #1e3a5f; }
+  body.dark-theme .side-item { color: #e6f1ff; }
+  body.dark-theme .side-item:hover { background: #163049; color: #fff; }
+  body.dark-theme .drawer-divider { border-top-color: #1e3a5f; }
   body.dark-theme .drawer-footer { border-top-color: #1e3a5f; color: #8ea8c4; }
   body.dark-theme .brush-size-container .control-label { color: #8ea8c4; }
   body.dark-theme .brush-size-container input[type="range"] {
@@ -55,7 +58,9 @@
       #1e3a5f var(--fill-percent, 0%),
       #1e3a5f 100%);
   }
-  body.dark-theme .drawer-close-sidebar-btn { color: #8ea8c4; }
+  body.dark-theme .sidebar-inner { background: var(--panel-bg); }
+  body.dark-theme .sidebar-handle-btn { background: var(--primary-red); border-color: var(--primary-red-hover); color: #fff; }
+  body.dark-theme .sidebar-handle-btn:hover { background: var(--primary-red-hover); border-color: var(--primary-red-hover); }
   
   body.dark-theme .modal-card { background: #0f2438; color: #e6f1ff; }
   body.dark-theme .modal-card h3 { color: #ff6b6b; }
@@ -107,9 +112,10 @@
     justify-content: space-between;
     gap: 16px;
     padding: 10px 20px;
+    height: var(--header-h);
     flex-shrink: 0;
     position: relative;
-    z-index: 10;
+    z-index: 50;
   }
   
   .brand {
@@ -284,8 +290,7 @@
      ========================================================================== */
   body.presentation-mode .app-header,
   body.presentation-mode #sidebar,
-  body.presentation-mode .nav-drawer-btn,
-  body.presentation-mode .drawer-overlay,
+  body.presentation-mode .mobile-bottom-bar,
   body.presentation-mode #text-format-bar {
     display: none !important;
   }
@@ -325,215 +330,224 @@
     visibility: visible;
   }
   
-  /* ==========================================================================
-     4. GAVETA LATERAL
+   /* ==========================================================================
+     4. SIDEBAR DESKTOP (CONTORNO ARREDONDADO + ALÇA, ABAIXO DO HEADER, À FRENTE DO CANVAS)
      ========================================================================== */
-  .nav-drawer-btn {
-    position: fixed;
-    top: 100px;
-    left: -14px;
-    z-index: 1000;
-    background-color: var(--primary-red);
-    color: #fff;
-    border: 1px solid rgba(255,255,255,0.2);
-    border-left: none;
-    padding: 0.6rem 0.8rem 0.6rem 1.2rem;
-    border-top-right-radius: var(--radius-sm);
-    border-bottom-right-radius: var(--radius-sm);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 3px 0 12px rgba(0,0,0,0.2);
-    transition: background-color 0.3s ease, transform 0.3s ease, opacity 0.3s ease;
-  }
-  .nav-drawer-btn:hover { background-color: var(--primary-red-hover); transform: translateX(4px); }
-  .nav-drawer-btn.hidden-in-game { display: none !important; }
-  
-  .drawer-overlay {
-    position: fixed;
-    inset: 0;
-    background-color: rgba(0,0,0,0.5);
-    backdrop-filter: blur(2px);
-    z-index: 1050;
-    opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-  }
-  .drawer-overlay.active { opacity: 1; visibility: visible; }
-  
-  #sidebar {
-    position: fixed;
-    top: 0;
-    left: -240px;
-    width: 220px;
-    height: 100vh;
-    background: var(--panel-bg);
-    border-right: 1px solid var(--border-color);
-    display: flex;
-    flex-direction: column;
-    padding: 12px 14px;
-    gap: 10px;
-    z-index: 1100;
-    transition: left 0.35s cubic-bezier(0.16, 1, 0.3, 1), background-color var(--tr-mid);
-    box-shadow: var(--shadow-drawer);
-    overflow-y: auto;
-    overflow-x: hidden;
-  }
-  #sidebar.active { left: 0; }
-  
-  .drawer-close-container {
-    display: flex;
-    justify-content: flex-end;
-    margin-bottom: -4px;
-  }
-  .drawer-close-sidebar-btn {
-    background: none;
-    border: none;
-    color: #666;
-    font-size: 16px;
-    cursor: pointer;
-    padding: 4px 8px;
-    transition: color var(--tr-fast);
-  }
-  .drawer-close-sidebar-btn:hover { color: var(--primary-red); }
-  
-  .drawer-title {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--primary-red);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 2px 4px 8px 4px;
-    border-bottom: 1px solid #eee;
-  }
-  .drawer-title i { font-size: 13px; }
-  
-  .tool-grid {
-    display: grid;
-    grid-template-columns: repeat(3, auto);
-    justify-content: center;
-    column-gap: 6px;
-    row-gap: 6px;
-  }
-  
-  .side-item {
-    position: relative;
-    width: 48px;
-    height: 48px;
-    font-size: 18px;
-    cursor: pointer;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    background: #fff;
-    transition: all var(--tr-fast);
-    color: #444;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  .side-item:hover {
-    transform: scale(1.08);
-    border-color: var(--primary-red);
-    color: var(--primary-red);
-    background: #fff5f5;
-  }
-  .side-item.active-tool {
-    background: var(--primary-red);
-    color: #fff;
-    border-color: var(--primary-red);
-  }
-  .side-item.disabled {
-    opacity: 0.35;
-    cursor: not-allowed;
-    pointer-events: none;
-  }
-  
-  .tool-grid .grid-separator {
-    grid-column: 1 / -1;
-    height: 1px;
-    background: #eee;
-    margin: 4px 0;
-  }
-  
-  .drawer-divider {
-    width: 100%;
-    border: 0;
-    border-top: 1px solid #eee;
-    margin: 2px 0;
-  }
-  
-  .brush-size-container {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 0 4px;
-    margin-top: auto;
-  }
-  .brush-size-container .control-label {
-    font-size: 10px;
-    font-weight: 600;
-    color: #777;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    margin-bottom: 6px;
-  }
-  .brush-size-container input[type="range"] {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 100%;
-    height: 6px;
-    background: linear-gradient(to right,
-      var(--primary-red) 0%,
-      var(--primary-red) var(--fill-percent, 0%),
-      #e0e0e0 var(--fill-percent, 0%),
-      #e0e0e0 100%);
-    border-radius: 3px;
-    outline: none;
-    cursor: pointer;
-  }
-  .brush-size-container input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: var(--primary-red);
-    cursor: pointer;
-  }
-  .brush-size-container input[type="range"]::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
-    border: none;
-    border-radius: 50%;
-    background: var(--primary-red);
-    cursor: pointer;
-  }
-  
-  .drawer-footer {
-    padding-top: 10px;
-    border-top: 1px solid var(--border-color);
-    font-size: 10px;
-    color: #777;
-    text-align: center;
-    line-height: 1.5;
-  }
-  .drawer-footer button {
-    background: none;
-    border: none;
-    color: var(--primary-red);
-    font-family: inherit;
-    font-size: 10px;
-    cursor: pointer;
-    padding: 0;
-    text-decoration: underline;
-  }
-  .drawer-footer button:hover { color: var(--primary-red-hover); }
-  .drawer-footer .credits { margin-top: 4px; opacity: 0.8; }
+     #sidebar {
+        position: fixed;
+        top: calc(var(--header-h) + 12px);
+        left: 12px;
+        height: calc(100vh - var(--header-h) - 24px);
+        width: 65px;
+        background: transparent;
+        border: 1px transparent;
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        padding: 14px 0; /* Padding lateral removido: passou para o .sidebar-inner */
+        gap: 10px;
+        z-index: 30;
+        box-shadow: var(--shadow-drawer);
+        
+      }
+    
+      #sidebar.sidebar--collapsed {
+        width: var(--sidebar-collapsed-w);
+      }
+    
+      #sidebar.hidden-in-game {
+        display: none !important;
+      }
+    
+     
+    
+      /* O .sidebar-inner agora tem fundo sólido até a borda, cobrindo a alça.
+         O padding-top maior (24px) dá o "respiro" no topo solicitado. */
+      .sidebar-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        height: 100%;
+        width: 100%;
+        padding: 34px 21px 24px 12px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+        position: relative;
+        z-index: 1; /* acima da alça (-1) */
+        background: transparent;
+        border-radius: 18px;
+      }
+      .sidebar-inner::-webkit-scrollbar {
+        display: none;
+      }
+    
+      /* Lista vertical de itens — SEM containers (sem borda/fundo de caixa) */
+      .tool-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        width: 100%;
+      }
+    
+      .side-item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 10px;
+        width: 100%;
+        height: 38px;
+        padding: 0 8px;
+        font-size: 16px;
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        border-radius: 8px;
+        color: #444;
+        transition: color var(--tr-fast), background-color var(--tr-fast);
+        flex-shrink: 0;
+        box-sizing: border-box;
+      }
+    
+      .side-item i {
+        flex-shrink: 0;
+        width: 20px;
+        text-align: center;
+      }
+    
+      .side-label {
+        font-size: 13px;
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    
+      /* Hover com mais contraste (modo claro) */
+      .side-item:hover {
+        color: var(--primary-red);
+        background: #fce8e800;
+      }
+      .side-item.active-tool {
+        color: var(--primary-red);
+        background: #fce8e800;
+      }
+      .side-item.disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        pointer-events: none;
+      }
+    
+      /* Estado colapsado: só ícones centralizados, sem labels */
+      #sidebar.sidebar--collapsed .side-item {
+        justify-content: center;
+        padding: 0;
+        width: 42px;
+        height: 42px;
+        margin: 0 auto;
+      }
+      #sidebar.sidebar--collapsed .side-label {
+        display: none;
+      }
+    
+      /* Remove a tooltip customizada da sidebar no modo claro.
+         O atributo data-tooltip ainda existe no HTML, mas escondemos o balão
+         especificamente quando o alvo é um item da sidebar e o tema é claro. */
+      body:not(.dark-theme) #sidebar .side-item[data-tooltip]::after {
+        display: none !important;
+      }
+    
+      .drawer-divider {
+        width: 100%;
+        border: 0;
+        border-top: 1px solid #eee;
+        margin: 2px 0;
+      }
+    
+      .brush-size-container {
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 0 4px;
+        margin-top: auto;
+      }
+      .brush-size-container .control-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: #777;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        white-space: nowrap;
+      }
+      .brush-size-container input[type="range"] {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 100%;
+        height: 6px;
+        background: linear-gradient(to right,
+          var(--primary-red) 0%,
+          var(--primary-red) var(--fill-percent, 0%),
+          #e0e0e0 var(--fill-percent, 0%),
+          #e0e0e0 100%);
+        border-radius: 3px;
+        outline: none;
+        cursor: pointer;
+      }
+      .brush-size-container input[type="range"]::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        background: var(--primary-red);
+        cursor: pointer;
+      }
+      .brush-size-container input[type="range"]::-moz-range-thumb {
+        width: 14px;
+        height: 14px;
+        border: none;
+        border-radius: 50%;
+        background: var(--primary-red);
+        cursor: pointer;
+      }
+    
+      /* Esconde brush size, divider e footer quando colapsada */
+      #sidebar.sidebar--collapsed .brush-size-container,
+      #sidebar.sidebar--collapsed .drawer-divider,
+      #sidebar.sidebar--collapsed .drawer-footer {
+        display: none;
+      }
+    
+      .drawer-footer {
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color);
+        font-size: 10px;
+        color: #777;
+        text-align: center;
+        line-height: 1.5;
+      }
+      .drawer-footer button {
+        background: none;
+        border: none;
+        color: var(--primary-red);
+        font-family: inherit;
+        font-size: 10px;
+        cursor: pointer;
+        padding: 0;
+        text-decoration: underline;
+      }
+      .drawer-footer button:hover { color: var(--primary-red-hover); }
+      .drawer-footer .credits { margin-top: 4px; opacity: 0.8; }
+    
+      /* Barra inferior mobile — oculta por padrão no desktop.
+         O media query (max-width: 768px) reativa com display: flex. */
+      .mobile-bottom-bar {
+        display: none !important;
+      }
   
   /* ==========================================================================
      5. SLIDES
@@ -595,7 +609,7 @@
     align-items: center;
     gap: 6px;
     box-shadow: 0 6px 20px rgba(0,0,0,0.15);
-    z-index: 50;
+    z-index: 40;
     opacity: 0;
     visibility: hidden;
     transition: transform var(--tr-mid), opacity var(--tr-mid), visibility var(--tr-mid), background-color var(--tr-mid);
@@ -700,7 +714,7 @@
     opacity: 0;
     visibility: hidden;
     transition: opacity var(--tr-fast), visibility var(--tr-fast);
-    z-index: 60;
+    z-index: 45;
   }
   #highlight-palette.visible {
     opacity: 1;
@@ -847,6 +861,82 @@
     box-shadow: 0 4px 8px rgba(0,0,0,0.15);
   }
   
+      /* ==========================================================================
+     EFEITO GOOEY PILL NA SIDEBAR (IDÊNTICO AO MODELO)
+     ========================================================================== */
+
+  .tool-grid {
+    position: relative;
+  }
+
+  /* A Bolha - tamanho exato do ícone, centralizada, com gradiente igual ao modelo */
+  .gooey-pill {
+    position: absolute;
+    left: 28px; /* Alinhado com o centro do ícone (ajustado pelo JS) */
+    transform: translateX(-50%);
+    width: 40px;  /* Tamanho do ícone */
+    height: 40px; /* Tamanho do ícone */
+    background: linear-gradient(135deg, var(--primary-red), #fc3d3d); /* Gradiente do modelo */
+    border-radius: 1rem; /* Arredondamento original */
+    z-index: 1;
+    opacity: 0;
+    pointer-events: none;
+    transition: top 0.32s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.2s ease;
+    will-change: transform, top;
+    box-shadow: 0 6px 14px rgba(245, 65, 65, 0.445);
+  }
+
+  .gooey-pill.active {
+    opacity: 0.8;
+  }
+
+  /* Animação idêntica ao modelo */
+  @keyframes gooeyStretch {
+    0% {
+      transform: translateX(-50%) scale(1, 1);
+      border-radius: 1.75rem;
+    }
+    35% {
+      transform: translateX(-50%) scale(0.65, 1.45);
+      border-radius: 2rem 1.5rem 2rem 1.5rem;
+    }
+    70% {
+      transform: translateX(-50%) scale(1.05, 0.95);
+      border-radius: 1.5rem 2rem 1.5rem 2rem;
+    }
+    100% {
+      transform: translateX(-50%) scale(1, 1);
+      border-radius: 1.75rem;
+    }
+  }
+
+  .gooey-pill.pill-animate {
+    animation: gooeyStretch 0.32s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  }
+
+  /* O Item fica acima da bolha */
+  .side-item {
+    position: relative;
+    z-index: 4!important;
+  }
+
+  /* Hover: NÃO muda a cor do item, apenas remove o fundo */
+  .side-item:hover {
+    background: transparent !important;
+    /* Mantém a cor original do texto e ícone */
+  }
+  
+  .side-item:hover i {
+    color:  var(--bg-main);
+  }
+
+  /* Ajuste quando a sidebar está colapsada */
+  #sidebar.sidebar--collapsed .gooey-pill {
+    left: 50%;
+    width: 40px;
+    height: 40px;
+  }
+
   /* ---- Game mode no mobile: uma coluna, teclado embaixo ---- */
   @media (max-width: 768px) {
     #screen-Modo-game {
@@ -943,7 +1033,7 @@
   .btn-modal {
     flex: 1;
     padding: 10px;
-    border-radius: var(--radius-md);
+    border-radius: 8px;
     border: none;
     font-weight: 600;
     font-family: inherit;
@@ -965,7 +1055,7 @@
   .icon-option {
     font-size: 22px;
     padding: 12px;
-    border: 1px solid #eee;
+    border: 1px solid #eeeeee00;
     border-radius: var(--radius-md);
     text-align: center;
     cursor: pointer;
@@ -973,7 +1063,7 @@
     transition: all var(--tr-fast);
   }
   .icon-option:hover {
-    background: #fff0f0;
+    background: #fff0f000;
     color: var(--primary-red);
     border-color: var(--primary-red);
     transform: scale(1.1);
@@ -1156,14 +1246,97 @@
     font-size: 12px;
     padding: 10px 8px;
   }
+
+  ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #f1f1f100; }
+        ::-webkit-scrollbar-thumb { background: #8b03032a; }
+        ::-webkit-scrollbar-thumb:hover { background: #cc0b0b21; }
   
   /* ==========================================================================
      10. RESPONSIVO — MOBILE (< 768px)
-     Nada aqui afeta o desktop.
+     Sem sidebar no mobile; itens selecionados vão para a barra de baixo.
      ========================================================================== */
   .hide-mobile { /* nada por padrão */ }
   
   @media (max-width: 768px) {
+  
+    /* Sem sidebar no mobile */
+    #sidebar {
+      display: none !important;
+    }
+  
+    /* Barra inferior no mobile — reativa com !important para
+       sobrescrever a regra base .mobile-bottom-bar { display: none !important } */
+    .mobile-bottom-bar {
+      display: flex !important;
+      align-items: center;
+      justify-content: space-around;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: var(--mobile-bar-h);
+      padding: 4px 8px;
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+      box-shadow: 0 -4px 16px rgba(0,0,0,0.08);
+      z-index: 60;
+    }
+    .mobile-bottom-bar.hidden-in-game {
+      display: none !important;
+    }
+    .mobile-bottom-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-color);
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: background var(--tr-fast), color var(--tr-fast);
+    }
+    .mobile-bottom-btn:hover {
+      background: #fff5f5;
+      color: var(--primary-red);
+    }
+
+    /* codigo do thumb*/
+
+    .mobile-bottom-bar .mobile-nav__thumb {
+        position: absolute;
+        top: 0;
+        left: 8px; /* acompanha o padding lateral da barra */
+        width: calc((100% - 16px) / 5);
+        height: 3px;
+        border-radius: 0 0 3px 3px;
+        background: var(--primary-red);
+        box-shadow: 0 2px 8px rgba(194, 0, 0, 0.35);
+        transform: translateX(calc(var(--idx, 0) * 100%));
+        transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.2s ease;
+        pointer-events: none;
+        will-change: transform;
+        z-index: 1;
+      }
+      
+      .mobile-bottom-btn {
+        position: relative;
+        z-index: 2;
+      }
+      
+      @media (prefers-reduced-motion: reduce) {
+        .mobile-bottom-bar .mobile-nav__thumb {
+          transition: none;
+        }
+      }
+      /*codigo do thumb*/
+  
+    #screens-wrapper {
+      padding-bottom: var(--mobile-bar-h);
+    }
   
     /* ---- Header enxuto ---- */
     .hide-mobile { display: none !important; }
@@ -1202,63 +1375,17 @@
     .tutorial-label { display: none; }
     .tutorial-btn {
       padding: 8px 10px;
-      border-radius: 50%;
+      border-radius: 10%;
       width: 34px;
       height: 34px;
       justify-content: center;
     }
   
-    /* ---- Gaveta: grid apertado, sem barra de rolagem visível ---- */
-  
-    #sidebar {
-      scrollbar-width: none;        /* Firefox */
-      -ms-overflow-style: none;     /* IE/Edge legado */
-      padding: 10px 12px;
-      gap: 8px;
-    }
-    #sidebar::-webkit-scrollbar {   /* Chrome/Safari */
-      display: none;
-    }
-  
-    .drawer-title {
-      font-size: 11px;
-      padding: 2px 2px 6px 2px;
-    }
-  
-    /* Grid 3×N com botões de 40×40 */
-    .tool-grid {
-      column-gap: 6px;
-      row-gap: 6px;
-    }
-    .side-item {
-      width: 40px;
-      height: 40px;
-      font-size: 16px;
-      border-radius: 8px;
-    }
-  
-    /* Slider compacto */
-    .brush-size-container {
-      padding: 0;
-      margin-top: 6px;
-    }
-    .brush-size-container .control-label {
-      font-size: 9px;
-      margin-bottom: 4px;
-    }
-  
-    /* Footer compacto */
-    .drawer-footer {
-      font-size: 9px;
-      padding-top: 8px;
-    }
-    .drawer-footer button { font-size: 9px; }
-    .drawer-footer .credits { font-size: 9px; }
-  
     /* Tooltip global não faz sentido no touch */
     .global-tooltip { display: none !important; }
-    /* ---- Barra de formatação de texto não aparece no mobile ---- */
-  #text-format-bar {
-    display: none !important;
   
+    /* ---- Barra de formatação de texto não aparece no mobile ---- */
+    #text-format-bar {
+      display: none !important;
+    }
   }
